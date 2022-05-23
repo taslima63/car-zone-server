@@ -35,23 +35,6 @@ async function run() {
             res.send(result);
         });
 
-        app.get('/available/:id', async (req, res) => {
-            const id = req.params.id;
-            console.log(id);
-            const query = { _id: ObjectId(id) };
-            const parts = await partsCollection.find(query).toArray();
-            const orders = await orderCollection.find().toArray();
-            parts.forEach(part => {
-                const partsOrdered = orders.filter(order => order.name === part.name);
-                const availableQuantity = parseInt(part.available);
-                const orderedQuantity = parseInt(partsOrdered.order_quantity);
-                console.log("orderedQuantity", orderedQuantity);
-                console.log("availableQuantity", availableQuantity);
-                const available = availableQuantity - partsOrdered?.quantity;
-                parts.available = parseInt(available);
-            });
-            res.send(parts);
-        })
 
         app.post('/order', async (req, res) => {
             const order = req.body;
@@ -65,6 +48,8 @@ async function run() {
             // sendAppointmentEmail(booking);
             return res.send({ success: true, result });
         });
+
+
 
 
     } finally {
