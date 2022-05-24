@@ -36,6 +36,7 @@ async function run() {
         const partsCollection = client.db('car-zone').collection('carParts');
         const orderCollection = client.db('car-zone').collection('orders');
         const userCollection = client.db('car-zone').collection('users');
+        const reviewCollection = client.db('car-zone').collection('reviews');
 
 
         const verifyAdmin = async (req, res, next) => {
@@ -56,6 +57,7 @@ async function run() {
             const parts = await cursor.toArray();
             res.send(parts);
         });
+        // add products or parts to carParts document
 
         app.post('/carParts', async (req, res) => {
             const carParts = req.body;
@@ -118,6 +120,19 @@ async function run() {
         })
 
 
+        app.get('/order', async (req, res) => {
+            const myOrder = req.query.myOrder;
+            const decodedEmail = req.decoded.email;
+            if (myOrder === decodedEmail) {
+                const query = { myOrder: myOrder };
+                const orders = await orderCollection.find(query).toArray();
+                return res.send(orders);
+            }
+            else {
+                return res.status(403).send({ message: 'forbidden access' });
+            }
+        })
+
 
         app.post('/order', async (req, res) => {
             const order = req.body;
@@ -128,6 +143,20 @@ async function run() {
             }
             const result = await orderCollection.insertOne(order);
             return res.send({ success: true, result });
+        });
+        // get reviews
+        app.get('/reviews', async (req, res) => {
+            const query = {};
+            const cursor = reviewCollection.find(query)
+            const reviews = await cursor.toArray();
+            res.send(reviews);
+        });
+
+        // add review to review document
+        app.post('/reviews', async (req, res) => {
+            const reviews = req.body;
+            const result = await reviewCollection.insertOne(reviews);
+            res.send(result);
         });
 
 
