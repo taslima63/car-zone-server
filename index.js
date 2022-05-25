@@ -59,11 +59,20 @@ async function run() {
         });
         // add products or parts to carParts document
 
-        app.post('/carParts', async (req, res) => {
+        app.post('/carParts', verifyJWT, verifyAdmin, async (req, res) => {
             const carParts = req.body;
             const result = await partsCollection.insertOne(carParts);
             res.send(result);
         });
+
+        // get specific part  from db 
+        app.get('/carParts/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const part = await partsCollection.findOne(query);
+            res.send(part);
+        });
+
 
         app.get('/user', async (req, res) => {
             const users = await userCollection.find().toArray();
@@ -83,7 +92,7 @@ async function run() {
             res.send({ result, token });
         });
 
-        app.get('/admin/:email', verifyJWT, async (req, res) => {
+        app.get('/admin/:email', async (req, res) => {
             const email = req.params.email;
             const user = await userCollection.findOne({ email: email });
             const isAdmin = user.role === 'admin';
@@ -91,7 +100,7 @@ async function run() {
         })
 
 
-        app.put('/user/admin/:email', verifyJWT, async (req, res) => {
+        app.put('/user/admin/:email', verifyJWT, verifyAdmin, async (req, res) => {
             const email = req.params.email;
             const filter = { email: email };
             const updateDoc = {
@@ -158,10 +167,6 @@ async function run() {
             const result = await reviewCollection.insertOne(reviews);
             res.send(result);
         });
-
-
-
-
     } finally {
 
     }
