@@ -59,7 +59,7 @@ async function run() {
         });
         // add products or parts to carParts document
 
-        app.post('/carParts', verifyJWT, verifyAdmin, async (req, res) => {
+        app.post('/carParts', async (req, res) => {
             const carParts = req.body;
             const result = await partsCollection.insertOne(carParts);
             res.send(result);
@@ -70,6 +70,14 @@ async function run() {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const part = await partsCollection.findOne(query);
+            res.send(part);
+        });
+        //delete
+        app.delete('/carParts/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log("product delete id", id);
+            const query = { _id: ObjectId(id) };
+            const part = await partsCollection.deleteOne(query);
             res.send(part);
         });
 
@@ -88,11 +96,11 @@ async function run() {
                 $set: user,
             };
             const result = await userCollection.updateOne(filter, updateDoc, options);
-            const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '240h' });
+            const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '30d' });
             res.send({ result, token });
         });
         // user delete 
-        app.delete('/user/:email', verifyAdmin, async (req, res) => {
+        app.delete('/user/:email', async (req, res) => {
             const email = req.params.email;
             const filter = { email: email };
             const result = await userCollection.deleteOne(filter);
@@ -107,7 +115,7 @@ async function run() {
         })
 
 
-        app.put('/user/admin/:email', verifyJWT, verifyAdmin, async (req, res) => {
+        app.put('/user/admin/:email', async (req, res) => {
             const email = req.params.email;
             const filter = { email: email };
             const updateDoc = {
@@ -117,7 +125,7 @@ async function run() {
             res.send(result);
         })
 
-        app.get('/available/:id', verifyJWT, async (req, res) => {
+        app.get('/available/:id', async (req, res) => {
             const id = req.params.id;
             console.log(id);
             const query = { _id: ObjectId(id) };
@@ -137,16 +145,17 @@ async function run() {
 
 
         app.get('/order', async (req, res) => {
-            const myOrder = req.query.myOrder;
-            const decodedEmail = req.decoded.email;
-            if (myOrder === decodedEmail) {
-                const query = { myOrder: myOrder };
-                const orders = await orderCollection.find(query).toArray();
-                return res.send(orders);
-            }
-            else {
-                return res.status(403).send({ message: 'forbidden access' });
-            }
+            const orders = await orderCollection.find().toArray();
+            res.send(orders);
+        });
+
+        app.get('/order/:email', async (req, res) => {
+            const user = req.params.email;
+
+            const query = { user: user };
+            const orders = await orderCollection.find(query).toArray();
+            return res.send(orders);
+
         })
 
 
