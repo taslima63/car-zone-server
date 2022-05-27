@@ -91,6 +91,13 @@ async function run() {
             const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '240h' });
             res.send({ result, token });
         });
+        // user delete 
+        app.delete('/user/:email', verifyAdmin, async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email };
+            const result = await userCollection.deleteOne(filter);
+            res.send(result);
+        });
 
         app.get('/admin/:email', async (req, res) => {
             const email = req.params.email;
